@@ -30,6 +30,6 @@ public class CharacterBodiesPusher : MonoBehaviour
         // then you can also multiply the push velocity by that.
 
         // Apply the push
-        body.velocity = pushDir * PushPower;
+        body.linearVelocity = pushDir * PushPower;
     }
 }
