@@ -2,8 +2,11 @@
 
 public class FireThrowable : MonoBehaviour
 {
-    public float HealthAddAmount = 0.1f;
-    public int MaxHealthAddAmount;
+	public float HealthAddAmount = 0.1f;
+	public int MaxHealthAddAmount;
 
-    public GameObject ThrowPrefab;
+	public GameObject ThrowPrefab;
+
+	[Header("Economy Settings")]
+	public int PointValue = 10;
 }
