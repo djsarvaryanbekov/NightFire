@@ -13,6 +13,16 @@ public class PlayerGrabTrigger : MonoBehaviour
 	public GameObject EnemyHitEffectPrefab;
 	public AudioSource PlayerAttackSound;
 
+	[Header("Super Attack Settings")]
+	[Tooltip("Радиус кругового удара супер-атаки.")]
+	public float SuperAttackRadius = 8.5f;
+	[Tooltip("Урон, наносимый супер-атакой (по умолчанию 75).")]
+	public float SuperAttackDamage = 75f;
+	[Tooltip("Эффект круговой ударной волны/взрыва.")]
+	public GameObject SuperAttackEffectPrefab;
+	[Tooltip("Звук супер-атаки.")]
+	public AudioSource SuperAttackSound;
+
 	[Header("Original Audio")]
 	public AudioSource ChopTreeSound;
 	public AudioSource GrabSound;
@@ -194,6 +204,30 @@ public class PlayerGrabTrigger : MonoBehaviour
 			}
 
 			GrabbedObject = null;
+		}
+	}
+
+	public void PerformSuperAttack()
+	{
+		// Проигрываем звук супер-атаки
+		if (SuperAttackSound != null) SuperAttackSound.Play();
+
+		// Спавним круговой визуальный эффект
+		if (SuperAttackEffectPrefab != null)
+		{
+			Instantiate(SuperAttackEffectPrefab, transform.position, Quaternion.identity);
+		}
+
+		// Ищем все коллайдеры в 3D-сфере вокруг игрока
+		Collider[] hitColliders = Physics.OverlapSphere(transform.position, SuperAttackRadius);
+
+		foreach (Collider col in hitColliders)
+		{
+			// Оптимизация Unity 6: наносим урон всем врагам, попавшим в сферу
+			if (col.TryGetComponent<EnemyHealth>(out var enemy))
+			{
+				enemy.TakeDamage(SuperAttackDamage);
+			}
 		}
 	}
 }

@@ -4293,6 +4293,54 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 388030041}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &392239916
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 392239918}
+  - component: {fileID: 392239917}
+  m_Layer: 0
+  m_Name: AmbientSoundManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &392239917
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 392239916}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ebf8795267d324e4280c14b82cf459fb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AmbientAudioManager
+  DefaultAmbientClip: {fileID: 8300000, guid: d59bac8c6ee895441915ab1fcd0691e1, type: 3}
+  FadeDuration: 2
+  AudioSourceA: {fileID: 0}
+  AudioSourceB: {fileID: 0}
+--- !u!4 &392239918
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 392239916}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 5.4647, y: 6.99659, z: 4.97377}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &404552661
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -8935,6 +8983,73 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 16f905150de21da4dade74ea4b4be3fe, type: 3}
+--- !u!1 &950330025
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 950330028}
+  - component: {fileID: 950330027}
+  - component: {fileID: 950330026}
+  m_Layer: 0
+  m_Name: AmbientSoundPrefab
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!65 &950330026
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 950330025}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 66.25, y: 24.35, z: 81.39}
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &950330027
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 950330025}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a667cd2dec0552544b7bde3523bc4c93, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AmbientZone
+  ZoneClip: {fileID: 8300000, guid: 58f19611a1b69cc47997a2812fd296e3, type: 3}
+--- !u!4 &950330028
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 950330025}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 54, y: 6.99659, z: 73.3}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &958316737
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -17509,6 +17624,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: EnemyBitter
       objectReference: {fileID: 0}
+    - target: {fileID: 2040977571826354903, guid: 82bc27603c8c6314a81cf7f25b4019c7,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5746843251298213272, guid: 82bc27603c8c6314a81cf7f25b4019c7,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -20824,6 +20944,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Spawners
       objectReference: {fileID: 0}
+    - target: {fileID: 1463881223822587037, guid: cd9942154ed481d48a0e01437f5d2c6d,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8357532147053918668, guid: cd9942154ed481d48a0e01437f5d2c6d,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -21763,7 +21888,7 @@ PrefabInstance:
     - target: {fileID: 2040977571826354903, guid: 82bc27603c8c6314a81cf7f25b4019c7,
         type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5746843251298213272, guid: 82bc27603c8c6314a81cf7f25b4019c7,
         type: 3}
@@ -21846,3 +21971,5 @@ SceneRoots:
   - {fileID: 8435036840959375668}
   - {fileID: 1607321090}
   - {fileID: 1829647537}
+  - {fileID: 950330028}
+  - {fileID: 392239918}
