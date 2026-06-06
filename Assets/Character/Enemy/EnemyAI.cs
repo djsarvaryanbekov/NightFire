@@ -9,15 +9,20 @@ public class EnemyAI : MonoBehaviour
 	public EnemyType Type = EnemyType.Biter;
 
 	[Header("Targeting Settings")]
-	[Tooltip("Дистанция, на которой враг замечает игрока и бежит за ним.")]
 	public float PlayerDetectionRange = 8f;
-	[Tooltip("Дистанция, на которой враг теряет игрока из виду и возвращается к костру.")]
 	public float PlayerLoseRange = 12f;
 
+	[Header("Aggro Behavior Settings")]
+	[Tooltip("Если включено, враг будет игнорировать игрока, пока игрок сам его не ударит.")]
+	public bool AggroOnlyOnDamage = false;
+	private bool hasBeenDamaged = false; // Был ли получен урон
+
+	[Header("Attack Ranges")]
+	public float FirepitAttackRange = 3.8f;
+	public float PlayerAttackRange = 2.6f;
+
 	[Header("Attack Settings")]
-	[Tooltip("Урон, наносимый костру за одну атаку (от 0 до 1).")]
 	public float FirepitDamage = 0.05f;
-	[Tooltip("Урон, наносимый игроку за один укус.")]
 	public float PlayerDamage = 15f;
 	public float AttackCooldown = 1.5f;
 	public float SuicideJumpForce = 6f;
@@ -41,6 +46,12 @@ public class EnemyAI : MonoBehaviour
 		}
 	}
 
+	// Метод вызывается из EnemyHealth при получении урона
+	public void OnTakeDamage()
+	{
+		hasBeenDamaged = true;
+	}
+
 	private void Update()
 	{
 		if (!MainMenu.IsGameStarted || Firepit.Instance == null || ShopManager.IsShopOpen)
@@ -49,7 +60,6 @@ public class EnemyAI : MonoBehaviour
 			return;
 		}
 
-		// Вычисляем позиции по горизонтали (X/Z), игнорируя высоту Y
 		Vector3 firePos = Firepit.Instance.transform.position;
 		Vector3 playerPos = PlayerControls.Instance != null ? PlayerControls.Instance.transform.position : transform.position;
 		Vector3 enemyPos = transform.position;
@@ -61,39 +71,31 @@ public class EnemyAI : MonoBehaviour
 		float distanceToFire = Vector3.Distance(enemyPos, firePos);
 		float distanceToPlayer = PlayerControls.Instance != null ? Vector3.Distance(enemyPos, playerPos) : float.MaxValue;
 
-		// Определяем, на кого агриться
 		HandleAggro(distanceToPlayer);
 
 		if (isTargetingPlayer)
 		{
-			// Если подошли к игроку вплотную
-			if (distanceToPlayer <= 1.8f)
+			if (distanceToPlayer <= PlayerAttackRange)
 			{
-				// Останавливаем движение (только если еще не остановлены)
 				if (agent.enabled && !agent.isStopped)
 				{
 					agent.isStopped = true;
 				}
-
 				AttackPlayer();
 			}
 			else
 			{
-				// Если игрок отбежал — снимаем тормоз и бежим за ним
 				if (agent.enabled && agent.isStopped)
 				{
 					agent.isStopped = false;
 				}
-
 				agent.SetDestination(PlayerControls.Instance.transform.position);
 			}
 		}
 		else
 		{
-			// Если подошли к костру
-			if (distanceToFire <= 3.8f)
+			if (distanceToFire <= FirepitAttackRange)
 			{
-				// Останавливаем движение (только если еще не остановлены)
 				if (agent.enabled && !agent.isStopped)
 				{
 					agent.isStopped = true;
@@ -110,12 +112,10 @@ public class EnemyAI : MonoBehaviour
 			}
 			else
 			{
-				// Если костер далеко — снимаем тормоз и идем к нему
 				if (agent.enabled && agent.isStopped)
 				{
 					agent.isStopped = false;
 				}
-
 				agent.SetDestination(Firepit.Instance.transform.position);
 			}
 		}
@@ -126,6 +126,13 @@ public class EnemyAI : MonoBehaviour
 		if (PlayerControls.Instance == null) return;
 
 		if (Type == EnemyType.Jumper)
+		{
+			isTargetingPlayer = false;
+			return;
+		}
+
+		// Если включен мирный агр и урона еще не было — полностью игнорируем игрока
+		if (AggroOnlyOnDamage && !hasBeenDamaged)
 		{
 			isTargetingPlayer = false;
 			return;
@@ -146,7 +153,6 @@ public class EnemyAI : MonoBehaviour
 		if (Time.time >= lastAttackTime + AttackCooldown)
 		{
 			lastAttackTime = Time.time;
-
 			Firepit.Instance.AddHealth(-FirepitDamage, 0);
 
 			if (AttackSound != null) AttackSound.Play();

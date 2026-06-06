@@ -10,13 +10,10 @@ public class PlayerHealth : MonoBehaviour
 	public float CurrentHealth;
 
 	[Header("Regen Near Campfire")]
-	[Tooltip("Сколько HP восстанавливается в секунду, когда игрок рядом с костром.")]
 	public float RegenAmountPerSecond = 8f;
-	[Tooltip("Дистанция до костра, на которой начинается лечение.")]
 	public float RegenDistance = 5f;
 
 	[Header("UI")]
-	[Tooltip("UI картинка (Image) полоски здоровья игрока (тип Fill Amount).")]
 	public Image PlayerHpBar;
 
 	private void Awake()
@@ -34,7 +31,6 @@ public class PlayerHealth : MonoBehaviour
 	{
 		if (!MainMenu.IsGameStarted) return;
 
-		// Если игрок ранен и находится близко к костру — лечим его
 		if (Firepit.Instance != null && CurrentHealth < MaxHealth)
 		{
 			float distanceToFire = Vector3.Distance(transform.position, Firepit.Instance.transform.position);
@@ -75,7 +71,6 @@ public class PlayerHealth : MonoBehaviour
 	private void Die()
 	{
 		Debug.Log("Игрок погиб!");
-		// Активируем экран поражения
 		if (Firepit.Instance != null && Firepit.Instance.GameOverScreen != null)
 		{
 			Firepit.Instance.GameOverScreen.gameObject.SetActive(true);

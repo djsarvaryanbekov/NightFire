@@ -5,15 +5,12 @@ using TMPro;
 public class ShopManager : MonoBehaviour
 {
 	public static ShopManager Instance;
-
-	// Статическая переменная, которую проверяет PlayerControls
 	public static bool IsShopOpen = false;
 
 	[Header("Economy settings")]
 	public static int TotalPoints = 0;
 
 	[Header("UI Panels")]
-	[Tooltip("Панель меню магазина.")]
 	public GameObject ShopMenuPanel;
 	public TextMeshProUGUI PointsText;
 
@@ -25,6 +22,15 @@ public class ShopManager : MonoBehaviour
 
 	public TextMeshProUGUI SpeedCostText;
 	public TextMeshProUGUI SpeedLevelText;
+
+	[Header("Upgrade Settings - Bite (Damage)")]
+	public int BiteBaseCost = 40;
+	public int BiteCostIncreasePerLevel = 25;
+	public float BiteDamageIncreaseAmount = 15f;
+	private int biteUpgradeLevel = 0;
+
+	public TextMeshProUGUI BiteCostText;
+	public TextMeshProUGUI BiteLevelText;
 
 	[Header("Upgrade Settings - Dash")]
 	public int DashCost = 100;
@@ -47,17 +53,14 @@ public class ShopManager : MonoBehaviour
 		UpdateUI();
 	}
 
-	// Срабатывает, когда игрок заходит в зону базы (триггер)
 	private void OnTriggerEnter(Collider other)
 	{
-		// Проверяем, что вошел именно игрок (ищем скрипт управления)
 		if (other.GetComponent<PlayerControls>() != null)
 		{
 			OpenShop();
 		}
 	}
 
-	// Срабатывает, когда игрок выходит из зоны базы
 	private void OnTriggerExit(Collider other)
 	{
 		if (other.GetComponent<PlayerControls>() != null)
@@ -81,11 +84,8 @@ public class ShopManager : MonoBehaviour
 
 		IsShopOpen = true;
 		ShopMenuPanel.SetActive(true);
-
-		// Время НЕ останавливаем (Scale = 1), чтобы игрок мог ходить внутри домика
 		Time.timeScale = 1f;
 
-		// Показываем курсор для покупок
 		Cursor.visible = true;
 		Cursor.lockState = CursorLockMode.None;
 
@@ -96,11 +96,7 @@ public class ShopManager : MonoBehaviour
 	{
 		IsShopOpen = false;
 		ShopMenuPanel.SetActive(false);
-
 		Time.timeScale = 1f;
-
-		// Скрываем курсор обратно при выходе из магазина (если это нужно для вашей игры)
-		// Cursor.visible = false;
 
 		UpdateUI();
 	}
@@ -115,6 +111,22 @@ public class ShopManager : MonoBehaviour
 			speedUpgradeLevel++;
 
 			PlayerControls.Instance.MaxMoveSpeed += SpeedIncreaseAmount;
+
+			UpdateUI();
+		}
+	}
+
+	public void BuyBiteUpgrade()
+	{
+		int currentCost = BiteBaseCost + (biteUpgradeLevel * BiteCostIncreasePerLevel);
+
+		if (TotalPoints >= currentCost && PlayerGrabTrigger.Instance != null)
+		{
+			TotalPoints -= currentCost;
+			biteUpgradeLevel++;
+
+			// Увеличиваем урон игрока на заданную величину
+			PlayerGrabTrigger.Instance.PlayerDamageAmount += BiteDamageIncreaseAmount;
 
 			UpdateUI();
 		}
@@ -140,6 +152,7 @@ public class ShopManager : MonoBehaviour
 			PointsText.text = $"Points: {TotalPoints}";
 		}
 
+		// Speed UI
 		if (SpeedCostText != null)
 		{
 			int nextCost = SpeedBaseCost + (speedUpgradeLevel * SpeedCostIncreasePerLevel);
@@ -149,6 +162,18 @@ public class ShopManager : MonoBehaviour
 		if (SpeedLevelText != null)
 		{
 			SpeedLevelText.text = $"Lvl {speedUpgradeLevel}";
+		}
+
+		// Bite UI
+		if (BiteCostText != null)
+		{
+			int nextBiteCost = BiteBaseCost + (biteUpgradeLevel * BiteCostIncreasePerLevel);
+			BiteCostText.text = $"Cost: {nextBiteCost} pts";
+		}
+
+		if (BiteLevelText != null)
+		{
+			BiteLevelText.text = $"Lvl {biteUpgradeLevel}";
 		}
 
 		if (DashButton != null)

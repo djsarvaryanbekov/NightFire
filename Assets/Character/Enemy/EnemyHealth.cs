@@ -8,11 +8,13 @@ public class EnemyHealth : MonoBehaviour
 	public float CurrentHealth;
 
 	[Header("UI (Optional)")]
-	[Tooltip("UI картинка полоски здоровья над головой врага (World Space Image с типом Fill Amount).")]
 	public Image HpBarFill;
 
+	[Header("Economy Settings")]
+	public int PointsOnDeath = 25;
+
 	[Header("Death Effects")]
-	public GameObject DeathEffectPrefab; // Эффект взрыва/смерти
+	public GameObject DeathEffectPrefab;
 	public AudioSource DeathSound;
 
 	private void Start()
@@ -26,6 +28,12 @@ public class EnemyHealth : MonoBehaviour
 		CurrentHealth -= amount;
 		CurrentHealth = Mathf.Max(0f, CurrentHealth);
 		UpdateUI();
+
+		// Оптимизация Unity 6: используем TryGetComponent
+		if (TryGetComponent<EnemyAI>(out var ai))
+		{
+			ai.OnTakeDamage();
+		}
 
 		if (CurrentHealth <= 0f)
 		{
@@ -43,6 +51,8 @@ public class EnemyHealth : MonoBehaviour
 
 	private void Die()
 	{
+		ShopManager.AddPoints(PointsOnDeath);
+
 		if (DeathEffectPrefab != null)
 		{
 			Instantiate(DeathEffectPrefab, transform.position + Vector3.up * 0.5f, Quaternion.identity);
@@ -50,7 +60,6 @@ public class EnemyHealth : MonoBehaviour
 
 		if (DeathSound != null && DeathSound.clip != null)
 		{
-			// Проигрываем звук смерти в точке гибели, так как сам объект будет удален
 			AudioSource.PlayClipAtPoint(DeathSound.clip, transform.position);
 		}
 
