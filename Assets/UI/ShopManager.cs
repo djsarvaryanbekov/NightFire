@@ -6,32 +6,29 @@ public class ShopManager : MonoBehaviour
 {
 	public static ShopManager Instance;
 
+	// Статическая переменная, которую проверяет PlayerControls
+	public static bool IsShopOpen = false;
+
 	[Header("Economy settings")]
 	public static int TotalPoints = 0;
 
 	[Header("UI Panels")]
-	[Tooltip("The parent Panel UI object representing the Shop/Pause Menu.")]
+	[Tooltip("Панель меню магазина.")]
 	public GameObject ShopMenuPanel;
-	[Tooltip("TextMeshPro Text element to display current points.")]
 	public TextMeshProUGUI PointsText;
 
 	[Header("Upgrade Settings - Speed")]
 	public int SpeedBaseCost = 30;
 	public int SpeedCostIncreasePerLevel = 20;
 	public float SpeedIncreaseAmount = 1.5f;
-	private int speedUpgradeLevel = 1;
+	private int speedUpgradeLevel = 0;
 
-	[Tooltip("Text element that displays only the cost of the speed upgrade.")]
 	public TextMeshProUGUI SpeedCostText;
-	[Tooltip("Text element that displays only the current speed level.")]
 	public TextMeshProUGUI SpeedLevelText;
 
 	[Header("Upgrade Settings - Dash")]
 	public int DashCost = 100;
-	[Tooltip("The Dash Button component. Will be made unpressable (non-interactable) once bought.")]
 	public Button DashButton;
-
-	private bool isShopOpen = false;
 
 	private void Awake()
 	{
@@ -41,6 +38,7 @@ public class ShopManager : MonoBehaviour
 	private void Start()
 	{
 		PlayerControls.IsDashUnlocked = false;
+		IsShopOpen = false;
 
 		if (ShopMenuPanel != null)
 		{
@@ -49,18 +47,22 @@ public class ShopManager : MonoBehaviour
 		UpdateUI();
 	}
 
-	private void Update()
+	// Срабатывает, когда игрок заходит в зону базы (триггер)
+	private void OnTriggerEnter(Collider other)
 	{
-		if (Input.GetKeyDown(KeyCode.Escape))
+		// Проверяем, что вошел именно игрок (ищем скрипт управления)
+		if (other.GetComponent<PlayerControls>() != null)
 		{
-			if (isShopOpen)
-			{
-				CloseShop();
-			}
-			else
-			{
-				OpenShop();
-			}
+			OpenShop();
+		}
+	}
+
+	// Срабатывает, когда игрок выходит из зоны базы
+	private void OnTriggerExit(Collider other)
+	{
+		if (other.GetComponent<PlayerControls>() != null)
+		{
+			CloseShop();
 		}
 	}
 
@@ -77,11 +79,13 @@ public class ShopManager : MonoBehaviour
 	{
 		if (!MainMenu.IsGameStarted) return;
 
-		isShopOpen = true;
+		IsShopOpen = true;
 		ShopMenuPanel.SetActive(true);
 
-		Time.timeScale = 0f;
+		// Время НЕ останавливаем (Scale = 1), чтобы игрок мог ходить внутри домика
+		Time.timeScale = 1f;
 
+		// Показываем курсор для покупок
 		Cursor.visible = true;
 		Cursor.lockState = CursorLockMode.None;
 
@@ -90,10 +94,13 @@ public class ShopManager : MonoBehaviour
 
 	public void CloseShop()
 	{
-		isShopOpen = false;
+		IsShopOpen = false;
 		ShopMenuPanel.SetActive(false);
 
 		Time.timeScale = 1f;
+
+		// Скрываем курсор обратно при выходе из магазина (если это нужно для вашей игры)
+		// Cursor.visible = false;
 
 		UpdateUI();
 	}
@@ -136,7 +143,7 @@ public class ShopManager : MonoBehaviour
 		if (SpeedCostText != null)
 		{
 			int nextCost = SpeedBaseCost + (speedUpgradeLevel * SpeedCostIncreasePerLevel);
-			SpeedCostText.text = $"{nextCost} pts";
+			SpeedCostText.text = $"Cost: {nextCost} pts";
 		}
 
 		if (SpeedLevelText != null)

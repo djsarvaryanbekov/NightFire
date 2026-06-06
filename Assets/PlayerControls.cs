@@ -29,22 +29,33 @@ public class PlayerControls : MonoBehaviour
 
 		grabTrigger = GetComponentInChildren<PlayerGrabTrigger>();
 	}
-
 	private void Update()
 	{
 		if (MainMenu.IsGameStarted && Time.timeScale > 0)
 		{
+			// Ходьба разрешена ВСЕГДА, даже когда открыт магазин на базе
 			UpdateWalk();
 
-			if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.RightControl) || Input.GetKeyDown(KeyCode.Z)) Grab();
-
-			if (IsDashUnlocked)
+			// Пробел и Шифт блокируются, ТОЛЬКО если магазин открыт
+			if (!ShopManager.IsShopOpen)
 			{
-				if (Input.GetKeyDown(KeyCode.LeftShift) || Input.GetKeyDown(KeyCode.RightShift) || Input.GetKeyDown(KeyCode.X)) Dash(false);
-				else if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift) || Input.GetKey(KeyCode.X)) Dash(true);
+				// Механика Grab (Пробел)
+				if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.RightControl) || Input.GetKeyDown(KeyCode.Z))
+					Grab();
+
+				// Механика Dash (Шифт)
+				if (IsDashUnlocked)
+				{
+					if (Input.GetKeyDown(KeyCode.LeftShift) || Input.GetKeyDown(KeyCode.RightShift) || Input.GetKeyDown(KeyCode.X))
+						Dash(false);
+					else if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift) || Input.GetKey(KeyCode.X))
+						Dash(true);
+				}
 			}
+
 			grabCooldown -= Time.deltaTime;
 		}
+
 		float currentSpeed = new Vector3(moveSpeed.x, 0, moveSpeed.z).magnitude;
 		float normalizedSpeed = MaxMoveSpeed > 0 ? (currentSpeed / MaxMoveSpeed) : 0f;
 

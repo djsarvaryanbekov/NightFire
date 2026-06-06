@@ -50,6 +50,7 @@ public class Firepit : MonoBehaviour
 
 	private void Update()
 	{
+		// Оставляем красивое мерцание света и звук костра на фоне активными
 		FireLoopSound.volume = Mathf.Lerp(0.2f, 0.8f, Health);
 
 		FirepitLight.intensity = Mathf.Lerp(1, 4, Health) + Mathf.Sin(Time.time * 3 + Random.value * .5f) * .2f;
@@ -58,9 +59,10 @@ public class Firepit : MonoBehaviour
 											  Mathf.Sin(Time.time * 2.2f) + Mathf.Sin(Time.time * Mathf.PI * 1.1f) +
 											  Mathf.Sin(Time.time * 3.123f),
 											  Mathf.Sin(Time.time * 2.4f) + Mathf.Sin(Time.time * Mathf.PI)
-										  ) * .05f; // For nice light cracking animation
+										  ) * .05f;
 
-		if (!MainMenu.IsGameStarted) return;
+		// ИЗМЕНЕНО: Если игра не началась ИЛИ открыт магазин на базе — останавливаем таймер и догорание костра
+		if (!MainMenu.IsGameStarted || ShopManager.IsShopOpen) return;
 
 		TimePassed += Time.deltaTime;
 
@@ -79,6 +81,7 @@ public class Firepit : MonoBehaviour
 		UpdateUI();
 		CheckAnyFuelThrowed();
 	}
+
 
 	private void UpdateLogs()
 	{
@@ -155,16 +158,20 @@ public class Firepit : MonoBehaviour
 
 		Destroy(target.gameObject);
 	}
-
 	public void AddHealth(float amount, int maxAmount)
 	{
-		if (amount > 0)
+		// Применяем изменение здоровья (как плюс, так и минус)
+		if (amount != 0)
 		{
 			Health += amount;
-			if (Health > 1) Health = 1;
+			Health = Mathf.Clamp(Health, 0f, 1f); // Удерживаем здоровье строго в диапазоне от 0 до 1
 
-			HpAddedText hpAddedText = Instantiate(HpAddedTextPrefab, HpText.transform.root);
-			hpAddedText.SetText((int)(amount * MaxHealthSeconds));
+			// Всплывающий текст на экране спавним ТОЛЬКО при лечении (когда amount больше нуля)
+			if (amount > 0)
+			{
+				HpAddedText hpAddedText = Instantiate(HpAddedTextPrefab, HpText.transform.root);
+				hpAddedText.SetText((int)(amount * MaxHealthSeconds));
+			}
 		}
 
 		if (maxAmount > 0)

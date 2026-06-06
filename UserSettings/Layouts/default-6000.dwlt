@@ -354,7 +354,7 @@ MonoBehaviour:
   m_Pos:
     serializedVersion: 2
     x: 0
-    y: 43.2
+    y: 0
     width: 1536
     height: 36
   m_SerializedDataModeController:
@@ -634,8 +634,8 @@ MonoBehaviour:
     m_TextWithWhitespace: "Inspector\u200B"
   m_Pos:
     serializedVersion: 2
-    x: 1040.8
-    y: 79.200005
+    x: 1041.8
+    y: 24
     width: 494.19995
     height: 690.8
   m_SerializedDataModeController:
@@ -687,7 +687,7 @@ MonoBehaviour:
   m_Pos:
     serializedVersion: 2
     x: 0
-    y: 79.200005
+    y: 24
     width: 343
     height: 274
   m_SerializedDataModeController:
@@ -1333,7 +1333,7 @@ MonoBehaviour:
   m_Rotation:
     m_Target: {x: 0.2235306, y: 0.7135273, z: -0.26127452, w: 0.61045057}
     speed: 2
-    m_Value: {x: 0.22353044, y: 0.7135268, z: -0.26127434, w: 0.61045015}
+    m_Value: {x: 0.22353062, y: 0.7135274, z: -0.26127452, w: 0.6104506}
   m_Size:
     m_Target: 2.6033332
     speed: 2
@@ -1470,8 +1470,8 @@ MonoBehaviour:
     m_TextWithWhitespace: "Game\u200B"
   m_Pos:
     serializedVersion: 2
-    x: 344
-    y: 79.200005
+    x: 345
+    y: 24
     width: 694.80005
     height: 274
   m_SerializedDataModeController:
@@ -1577,7 +1577,7 @@ MonoBehaviour:
   m_Pos:
     serializedVersion: 2
     x: 0
-    y: 379.2
+    y: 24
     width: 828.6
     height: 390.8
   m_SerializedDataModeController:
@@ -1628,8 +1628,7 @@ MonoBehaviour:
       m_Data: 34918
     m_ExpandedIDs:
     - m_Data: 0
-    - m_Data: 34788
-    - m_Data: 1000000000
+    - m_Data: 35020
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -1662,8 +1661,7 @@ MonoBehaviour:
       m_Data: 0
     m_ExpandedIDs:
     - m_Data: 0
-    - m_Data: 34788
-    - m_Data: 1000000000
+    - m_Data: 35020
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -1748,8 +1746,8 @@ MonoBehaviour:
     m_TextWithWhitespace: "Console\u200B"
   m_Pos:
     serializedVersion: 2
-    x: 829.60004
-    y: 379.2
+    x: 830.6
+    y: 24
     width: 209.20007
     height: 390.8
   m_SerializedDataModeController:
