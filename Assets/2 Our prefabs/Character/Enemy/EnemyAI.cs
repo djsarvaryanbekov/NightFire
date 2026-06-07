@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.AI;
 
-public enum EnemyType { Biter, Jumper }
+public enum EnemyType { Biter, Jumper, Sentry }
 
 [RequireComponent(typeof(NavMeshAgent))]
 public class EnemyAI : MonoBehaviour
@@ -13,9 +13,9 @@ public class EnemyAI : MonoBehaviour
 	public float PlayerLoseRange = 12f;
 
 	[Header("Aggro Behavior Settings")]
-	[Tooltip("Если включено, враг будет игнорировать игрока, пока игрок сам его не ударит.")]
+	[Tooltip("If enabled, the enemy will only target the player after taking damage.")]
 	public bool AggroOnlyOnDamage = false;
-	private bool hasBeenDamaged = false; // Был ли получен урон
+	private bool hasBeenDamaged = false;
 
 	[Header("Attack Ranges")]
 	public float FirepitAttackRange = 3.8f;
@@ -35,18 +35,24 @@ public class EnemyAI : MonoBehaviour
 	private float lastAttackTime;
 	private bool hasSuicided = false;
 	private bool isTargetingPlayer = false;
+	private Vector3 homePosition; // Saved spawn position for Sentry type
 
 	private void Start()
 	{
 		agent = GetComponent<NavMeshAgent>();
 
-		if (Firepit.Instance != null)
+		if (Type == EnemyType.Sentry)
+		{
+			// Save the initial position to return to later
+			homePosition = transform.position;
+		}
+		else if (Firepit.Instance != null)
 		{
 			agent.SetDestination(Firepit.Instance.transform.position);
 		}
 	}
 
-	// Метод вызывается из EnemyHealth при получении урона
+	// Triggered from EnemyHealth script when taking damage
 	public void OnTakeDamage()
 	{
 		hasBeenDamaged = true;
@@ -60,16 +66,25 @@ public class EnemyAI : MonoBehaviour
 			return;
 		}
 
-		Vector3 firePos = Firepit.Instance.transform.position;
 		Vector3 playerPos = PlayerControls.Instance != null ? PlayerControls.Instance.transform.position : transform.position;
 		Vector3 enemyPos = transform.position;
 
-		firePos.y = 0;
 		playerPos.y = 0;
 		enemyPos.y = 0;
 
-		float distanceToFire = Vector3.Distance(enemyPos, firePos);
 		float distanceToPlayer = PlayerControls.Instance != null ? Vector3.Distance(enemyPos, playerPos) : float.MaxValue;
+
+		// Sentry behavior runs on its own logic branch
+		if (Type == EnemyType.Sentry)
+		{
+			UpdateSentryBehavior(distanceToPlayer);
+			return;
+		}
+
+		// Standard Biter and Jumper logic
+		Vector3 firePos = Firepit.Instance.transform.position;
+		firePos.y = 0;
+		float distanceToFire = Vector3.Distance(enemyPos, firePos);
 
 		HandleAggro(distanceToPlayer);
 
@@ -121,6 +136,52 @@ public class EnemyAI : MonoBehaviour
 		}
 	}
 
+	private void UpdateSentryBehavior(float distanceToPlayer)
+	{
+		HandleAggro(distanceToPlayer);
+
+		if (isTargetingPlayer)
+		{
+			if (distanceToPlayer <= PlayerAttackRange)
+			{
+				if (agent.enabled && !agent.isStopped)
+				{
+					agent.isStopped = true;
+				}
+				AttackPlayer();
+			}
+			else
+			{
+				if (agent.enabled && agent.isStopped)
+				{
+					agent.isStopped = false;
+				}
+				agent.SetDestination(PlayerControls.Instance.transform.position);
+			}
+		}
+		else
+		{
+			// If target is lost, return home
+			float distanceToHome = Vector3.Distance(transform.position, homePosition);
+			if (distanceToHome > 0.5f)
+			{
+				if (agent.enabled && agent.isStopped)
+				{
+					agent.isStopped = false;
+				}
+				agent.SetDestination(homePosition);
+			}
+			else
+			{
+				// Stop moving once reached home
+				if (agent.enabled && !agent.isStopped)
+				{
+					agent.isStopped = true;
+				}
+			}
+		}
+	}
+
 	private void HandleAggro(float distanceToPlayer)
 	{
 		if (PlayerControls.Instance == null) return;
@@ -131,7 +192,7 @@ public class EnemyAI : MonoBehaviour
 			return;
 		}
 
-		// Если включен мирный агр и урона еще не было — полностью игнорируем игрока
+		// Prevent tracking unless the enemy was hit
 		if (AggroOnlyOnDamage && !hasBeenDamaged)
 		{
 			isTargetingPlayer = false;
@@ -145,6 +206,12 @@ public class EnemyAI : MonoBehaviour
 		else if (isTargetingPlayer && distanceToPlayer > PlayerLoseRange)
 		{
 			isTargetingPlayer = false;
+
+			// Reset aggro trigger if the player escapes
+			if (Type == EnemyType.Sentry)
+			{
+				hasBeenDamaged = false;
+			}
 		}
 	}
 
