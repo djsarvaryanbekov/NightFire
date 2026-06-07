@@ -271,9 +271,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::OvenManager
   OvenUIPanel: {fileID: 0}
-  EmberHelperPrefab: {fileID: 0}
+  EmberHelperPrefab: {fileID: 6626231535892652755, guid: 1e5acbf4a50f3ef46ac2079fff367dcc,
+    type: 3}
   SpawnPoint: {fileID: 7626673771600427231}
-  EmberCost: 150
+  EmberCost: 1
 --- !u!1 &7179832011116532990
 GameObject:
   m_ObjectHideFlags: 0
