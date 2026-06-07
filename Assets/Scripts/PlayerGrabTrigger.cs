@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class PlayerGrabTrigger : MonoBehaviour
 {
-	public static PlayerGrabTrigger Instance; // Переменная объявлена на уровне класса
+	public static PlayerGrabTrigger Instance;
 
 	public Rigidbody GrabbedObject;
 	public GameObject LanternPickedPrefab;
@@ -31,7 +31,6 @@ public class PlayerGrabTrigger : MonoBehaviour
 
 	private int grabLayerMask;
 	private List<Collider> collidersInTrigger = new List<Collider>();
-	private List<EnemyHealth> enemiesInTrigger = new List<EnemyHealth>();
 
 	private void Start()
 	{
@@ -51,20 +50,12 @@ public class PlayerGrabTrigger : MonoBehaviour
 
 	private void OnTriggerEnter(Collider other)
 	{
+		// Оставляем триггер только для пассивного сбора дров/грибов
 		if (((1 << other.gameObject.layer) & grabLayerMask) != 0)
 		{
 			if (!collidersInTrigger.Contains(other))
 			{
 				collidersInTrigger.Add(other);
-			}
-		}
-
-		// Оптимизация Unity 6: используем TryGetComponent вместо GetComponent
-		if (other.TryGetComponent<EnemyHealth>(out var enemy))
-		{
-			if (!enemiesInTrigger.Contains(enemy))
-			{
-				enemiesInTrigger.Add(enemy);
 			}
 		}
 	}
@@ -75,20 +66,14 @@ public class PlayerGrabTrigger : MonoBehaviour
 		{
 			collidersInTrigger.Remove(other);
 		}
-
-		if (other.TryGetComponent<EnemyHealth>(out var enemy))
-		{
-			if (enemiesInTrigger.Contains(enemy))
-			{
-				enemiesInTrigger.Remove(enemy);
-			}
-		}
 	}
 
 	public void Grab()
 	{
+		// 1. АТАКА ВРАГОВ (Теперь работает через точный OverlapBox в момент укуса!)
 		DamageEnemiesInTrigger();
 
+		// 2. СБОР ПРЕДМЕТОВ (Остался без изменений)
 		collidersInTrigger.RemoveAll(c => c == null);
 
 		if (collidersInTrigger.Count > 0)
@@ -140,25 +125,36 @@ public class PlayerGrabTrigger : MonoBehaviour
 
 	private void DamageEnemiesInTrigger()
 	{
-		enemiesInTrigger.RemoveAll(e => e == null);
+		BoxCollider box = GetComponent<BoxCollider>();
+		if (box == null) return;
 
-		if (enemiesInTrigger.Count > 0)
+		// Вычисляем мировые координаты, вращение и масштаб вашего BoxCollider на сцене
+		Vector3 center = transform.TransformPoint(box.center);
+		Vector3 halfExtents = Vector3.Scale(box.size, transform.lossyScale) * 0.5f;
+		Quaternion rotation = transform.rotation;
+
+		// Мгновенно сканируем пространство внутри коробки в момент укуса
+		Collider[] hitColliders = Physics.OverlapBox(center, halfExtents, rotation);
+		bool hitAnyEnemy = false;
+
+		foreach (Collider col in hitColliders)
 		{
-			if (PlayerAttackSound != null) PlayerAttackSound.Play();
-
-			for (int i = 0; i < enemiesInTrigger.Count; i++)
+			// Если внутри коробки оказался враг со здоровьем — наносим урон
+			if (col.TryGetComponent<EnemyHealth>(out var enemy))
 			{
-				EnemyHealth enemy = enemiesInTrigger[i];
-				if (enemy != null)
-				{
-					enemy.TakeDamage(PlayerDamageAmount);
+				enemy.TakeDamage(PlayerDamageAmount);
+				hitAnyEnemy = true;
 
-					if (EnemyHitEffectPrefab != null)
-					{
-						Instantiate(EnemyHitEffectPrefab, enemy.transform.position + Vector3.up * 0.5f, Quaternion.identity);
-					}
+				if (EnemyHitEffectPrefab != null)
+				{
+					Instantiate(EnemyHitEffectPrefab, enemy.transform.position + Vector3.up * 0.5f, Quaternion.identity);
 				}
 			}
+		}
+
+		if (hitAnyEnemy && PlayerAttackSound != null)
+		{
+			PlayerAttackSound.Play();
 		}
 	}
 
@@ -209,21 +205,17 @@ public class PlayerGrabTrigger : MonoBehaviour
 
 	public void PerformSuperAttack()
 	{
-		// Проигрываем звук супер-атаки
 		if (SuperAttackSound != null) SuperAttackSound.Play();
 
-		// Спавним круговой визуальный эффект
 		if (SuperAttackEffectPrefab != null)
 		{
 			Instantiate(SuperAttackEffectPrefab, transform.position, Quaternion.identity);
 		}
 
-		// Ищем все коллайдеры в 3D-сфере вокруг игрока
 		Collider[] hitColliders = Physics.OverlapSphere(transform.position, SuperAttackRadius);
 
 		foreach (Collider col in hitColliders)
 		{
-			// Оптимизация Unity 6: наносим урон всем врагам, попавшим в сферу
 			if (col.TryGetComponent<EnemyHealth>(out var enemy))
 			{
 				enemy.TakeDamage(SuperAttackDamage);
