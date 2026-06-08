@@ -11,14 +11,16 @@ public class Firepit : MonoBehaviour
 	[Range(0, 1)] public float Health = 1;
 	public AnimationCurve DifficultyCurve;
 
-	[Header("UI")] public Text HpText;
+	[Header("UI")]
+	public Text HpText;
 	public Text TimeText;
 	public Image HpBar;
 	public HpAddedText HpAddedTextPrefab;
 	public HpAddedText MaxHpAddedTextPrefab;
 	public GameOverScreen GameOverScreen;
 
-	[Header("Audio")] public AudioSource WoodBurntSound;
+	[Header("Audio")]
+	public AudioSource WoodBurntSound;
 	public AudioSource GameOverSound;
 	public AudioSource FireLoopSound;
 
@@ -50,9 +52,19 @@ public class Firepit : MonoBehaviour
 
 	private void Update()
 	{
-		// Оставляем красивое мерцание света и звук костра на фоне активными
-		FireLoopSound.volume = Mathf.Lerp(0.2f, 0.8f, Health);
+		// Check if SFX is currently enabled in saved settings
+		bool sfxOn = PlayerPrefs.GetInt("SfxOn", 1) == 1;
 
+		if (sfxOn)
+		{
+			//FireLoopSound.volume = Mathf.Lerp(0.2f, 0.8f, Health);
+		}
+		else
+		{
+			FireLoopSound.volume = 0f; // Force mute if SFX is disabled
+		}
+
+		// Keep the light flicker active and responsive to fire health
 		FirepitLight.intensity = Mathf.Lerp(1, 4, Health) + Mathf.Sin(Time.time * 3 + Random.value * .5f) * .2f;
 		FirepitLight.transform.position = lightInitialPosition + new Vector3(
 											  Mathf.Sin(Time.time * 2) + Mathf.Sin(Time.time * Mathf.PI * 1.2f),
@@ -61,7 +73,7 @@ public class Firepit : MonoBehaviour
 											  Mathf.Sin(Time.time * 2.4f) + Mathf.Sin(Time.time * Mathf.PI)
 										  ) * .05f;
 
-		// ИЗМЕНЕНО: Если игра не началась ИЛИ открыт магазин на базе — останавливаем таймер и догорание костра
+		// If the game has not started OR the shop on base is open - pause the timer and fuel depletion
 		if (!MainMenu.IsGameStarted || ShopManager.IsShopOpen) return;
 
 		TimePassed += Time.deltaTime;
@@ -81,7 +93,6 @@ public class Firepit : MonoBehaviour
 		UpdateUI();
 		CheckAnyFuelThrowed();
 	}
-
 
 	private void UpdateLogs()
 	{
@@ -158,15 +169,16 @@ public class Firepit : MonoBehaviour
 
 		Destroy(target.gameObject);
 	}
+
 	public void AddHealth(float amount, int maxAmount)
 	{
-		// Применяем изменение здоровья (как плюс, так и минус)
+		// Apply health change (both positive and negative)
 		if (amount != 0)
 		{
 			Health += amount;
-			Health = Mathf.Clamp(Health, 0f, 1f); // Удерживаем здоровье строго в диапазоне от 0 до 1
+			Health = Mathf.Clamp(Health, 0f, 1f); // Restrict health range strictly between 0 and 1
 
-			// Всплывающий текст на экране спавним ТОЛЬКО при лечении (когда amount больше нуля)
+			// Spawn pop-up text on screen ONLY when healing (amount is greater than zero)
 			if (amount > 0)
 			{
 				HpAddedText hpAddedText = Instantiate(HpAddedTextPrefab, HpText.transform.root);
