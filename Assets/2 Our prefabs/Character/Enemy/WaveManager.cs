@@ -1,31 +1,20 @@
 using System.Collections.Generic;
 using UnityEngine;
-using TMPro; // Для отображения информации о волне
-
-[System.Serializable]
-public class Wave
-{
-	public string WaveName = "Wave 1";
-	[Tooltip("Через сколько секунд после начала предыдущей волны начнется эта волна.")]
-	public float TimeBeforeTrigger = 30f;
-	[Tooltip("Список префабов врагов, которые могут появиться в этой волне (Biter, Jumper и т.д.).")]
-	public GameObject[] EnemyPrefabs;
-	[Tooltip("Количество врагов в этой волне.")]
-	public int EnemyCount = 5;
-}
+using TMPro;
 
 public class WaveManager : MonoBehaviour
 {
 	public static WaveManager Instance;
 
-	// Глобальный статический список всех активных точек спавна
+	// Holds active spawners for the current match
 	private static List<EnemySpawner> activeSpawners = new List<EnemySpawner>();
 
 	[Header("Wave Configuration")]
-	public List<Wave> Waves;
+	[Tooltip("Drag and drop your WaveData ScriptableObjects here in sequence.")]
+	public List<WaveData> Waves;
 
 	[Header("UI Reference")]
-	public TextMeshProUGUI WaveText; // Текстовое поле на экране (необязательно)
+	public TextMeshProUGUI WaveText;
 
 	private int currentWaveIndex = 0;
 	private float waveTimer = 0f;
@@ -38,8 +27,8 @@ public class WaveManager : MonoBehaviour
 
 	private void Start()
 	{
-		// Инициализируем таймер для первой волны
-		if (Waves.Count > 0)
+		// Initialize the timer for the first wave
+		if (Waves.Count > 0 && Waves[currentWaveIndex] != null)
 		{
 			waveTimer = Waves[currentWaveIndex].TimeBeforeTrigger;
 		}
@@ -50,59 +39,74 @@ public class WaveManager : MonoBehaviour
 	{
 		if (!MainMenu.IsGameStarted) return;
 
-		// Если все заготовленные волны пройдены:
+		// Endless mode: if all waves are completed
 		if (currentWaveIndex >= Waves.Count)
 		{
-			// Бесконечно запускаем последнюю волну каждые 40 секунд (можно настроить)
 			waveTimer -= Time.deltaTime;
 			if (waveTimer <= 0)
 			{
 				waveTimer = 40f;
-				StartCoroutine(SpawnWave(Waves[Waves.Count - 1]));
+				// Repeat the last wave in the list
+				if (Waves.Count > 0 && Waves[Waves.Count - 1] != null)
+				{
+					StartCoroutine(SpawnWave(Waves[Waves.Count - 1]));
+				}
 			}
 			return;
 		}
 
-		// Таймер обратного отсчета до следующей волны
+		// Count down to trigger the next wave
 		waveTimer -= Time.deltaTime;
 		if (waveTimer <= 0f && !isSpawning)
 		{
-			TriggerWave(Waves[currentWaveIndex]);
+			if (Waves[currentWaveIndex] != null)
+			{
+				TriggerWave(Waves[currentWaveIndex]);
+			}
+			else
+			{
+				// Fallback safety if a wave reference is missing
+				currentWaveIndex++;
+				UpdateUI();
+			}
 		}
 	}
 
-	private void TriggerWave(Wave wave)
+	private void TriggerWave(WaveData wave)
 	{
 		StartCoroutine(SpawnWave(wave));
 		currentWaveIndex++;
 
-		// Запускаем таймер для следующей волны
-		if (currentWaveIndex < Waves.Count)
+		// Configure timer for the following wave if available
+		if (currentWaveIndex < Waves.Count && Waves[currentWaveIndex] != null)
 		{
 			waveTimer = Waves[currentWaveIndex].TimeBeforeTrigger;
 		}
 		UpdateUI();
 	}
 
-	private System.Collections.IEnumerator SpawnWave(Wave wave)
+	private System.Collections.IEnumerator SpawnWave(WaveData wave)
 	{
 		isSpawning = true;
 
 		for (int i = 0; i < wave.EnemyCount; i++)
 		{
-			// Выбираем случайный безопасный спавнер
+			// Fetch a suitable random spawner away from player
 			EnemySpawner selectedSpawner = GetRandomValidSpawner();
 
-			if (selectedSpawner != null && wave.EnemyPrefabs.Length > 0)
+			if (selectedSpawner != null && wave.EnemyPrefabs != null && wave.EnemyPrefabs.Length > 0)
 			{
-				// Выбираем случайный тип врага из списка текущей волны
+				// Pick a random prefab from the list
 				GameObject randomEnemyPrefab = wave.EnemyPrefabs[Random.Range(0, wave.EnemyPrefabs.Length)];
 
-				// Спавним врага
-				Instantiate(randomEnemyPrefab, selectedSpawner.transform.position, Quaternion.identity);
+				if (randomEnemyPrefab != null)
+				{
+					// Instantiate enemy
+					Instantiate(randomEnemyPrefab, selectedSpawner.transform.position, Quaternion.identity);
+				}
 			}
 
-			// Небольшая задержка (0.3 сек) между появлением врагов, чтобы они не появлялись в одной точке одновременно
+			// Delay to prevent enemy clustering
 			yield return new WaitForSeconds(0.3f);
 		}
 
@@ -120,7 +124,7 @@ public class WaveManager : MonoBehaviour
 			playerPos = PlayerControls.Instance.transform.position;
 		}
 
-		// Фильтруем спавнеры: берем только те, где игрока нет в радиусе блокировки
+		// Filter active spawners outside player proximity
 		List<EnemySpawner> validSpawners = new List<EnemySpawner>();
 		foreach (var spawner in activeSpawners)
 		{
@@ -132,14 +136,12 @@ public class WaveManager : MonoBehaviour
 			}
 		}
 
-		// Если игрок умудрился заблокировать ВСЕ спавнеры на карте:
-		// Используем любой спавнер в качестве запасного, чтобы игра не сломалась
+		// Fallback option if all active spawners are blocked
 		if (validSpawners.Count == 0)
 		{
 			return activeSpawners[Random.Range(0, activeSpawners.Count)];
 		}
 
-		// Возвращаем случайную точку из разрешенных
 		return validSpawners[Random.Range(0, validSpawners.Count)];
 	}
 
@@ -147,7 +149,7 @@ public class WaveManager : MonoBehaviour
 	{
 		if (WaveText != null)
 		{
-			if (currentWaveIndex < Waves.Count)
+			if (currentWaveIndex < Waves.Count && Waves[currentWaveIndex] != null)
 			{
 				WaveText.text = $"Wave {currentWaveIndex + 1}: {Waves[currentWaveIndex].WaveName}";
 			}
@@ -158,7 +160,7 @@ public class WaveManager : MonoBehaviour
 		}
 	}
 
-	// Методы для динамической саморегистрации спавнеров
+	// Methods to handle dynamically registered spawners
 	public static void RegisterSpawner(EnemySpawner spawner)
 	{
 		if (!activeSpawners.Contains(spawner))
